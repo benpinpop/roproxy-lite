@@ -37,6 +37,12 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if strings.ContainsAny(ctx.Path(),"9473652") {
+		ctx.SetStatusCode(403)
+		ctx.SetBody([]byte("Restricted from usage of Proxy. Contact Benpinpop#4348 on discord for more information."))
+		return
+	}
+
 	if len(strings.SplitN(string(ctx.Request.Header.RequestURI())[1:], "/", 2)) < 2 {
 		ctx.SetStatusCode(400)
 		ctx.SetBody([]byte("URL format invalid."))
