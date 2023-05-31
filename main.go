@@ -37,9 +37,9 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if strings.ContainsAny(ctx.Path(),"9473652") {
+	if strings.Contains(string(ctx.Path()),"9473652") {
 		ctx.SetStatusCode(403)
-		ctx.SetBody([]byte("Restricted from usage of Proxy. Contact Benpinpop#4348 on discord for more information."))
+		ctx.SetBody([]byte("Restricted from usage of service. Contact Benpinpop#4348 on discord for more information."))
 		return
 	}
 
