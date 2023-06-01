@@ -38,7 +38,6 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 	}
 
 	if strings.Contains(string(ctx.Path()),"9473652") {
-		log.
 		ctx.SetStatusCode(403)
 		ctx.SetBody([]byte("Restricted from usage of service. Contact Benpinpop#4348 on discord for more information."))
 		return
