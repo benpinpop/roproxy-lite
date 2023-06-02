@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"time"
 	"os"
-	"github.com/valyala/fasthttp"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/valyala/fasthttp"
 )
 
 var timeout, _ = strconv.Atoi(os.Getenv("TIMEOUT"))
@@ -14,18 +16,19 @@ var retries, _ = strconv.Atoi(os.Getenv("RETRIES"))
 var port = os.Getenv("PORT")
 
 var client *fasthttp.Client
-
-const blacklistedTerms []string{"9473652"}
+var blacklistedTerms = []string{"9473652"}
 
 func main() {
+	fmt.Println(port)
+	log.Println(port)
 	h := requestHandler
-	
+
 	client = &fasthttp.Client{
-		ReadTimeout: time.Duration(timeout) * time.Second,
+		ReadTimeout:         time.Duration(timeout) * time.Second,
 		MaxIdleConnDuration: 60 * time.Second,
 	}
 
-	if err := fasthttp.ListenAndServe(":" + port, h); err != nil {
+	if err := fasthttp.ListenAndServe(":"+port, h); err != nil {
 		log.Fatalf("Error in ListenAndServe: %s", err)
 	}
 }
@@ -39,13 +42,13 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	for idx,val := range blacklistedTerms {
-		if strings.Contains(string(ctx.Path()),val) {
+	for _, val := range blacklistedTerms {
+		if strings.Contains(string(ctx.Path()), val) {
 			ctx.SetStatusCode(403)
 			ctx.SetBody([]byte("Restricted from usage of service. Contact Benpinpop#4348 on discord for more information."))
 			return
 		}
-	}	
+	}
 
 	if len(strings.SplitN(string(ctx.Request.Header.RequestURI())[1:], "/", 2)) < 2 {
 		ctx.SetStatusCode(400)
@@ -60,7 +63,7 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 	body := response.Body()
 	ctx.SetBody(body)
 	ctx.SetStatusCode(response.StatusCode())
-	response.Header.VisitAll(func (key, value []byte) {
+	response.Header.VisitAll(func(key, value []byte) {
 		ctx.Response.Header.Set(string(key), string(value))
 	})
 }
@@ -80,7 +83,7 @@ func makeRequest(ctx *fasthttp.RequestCtx, attempt int) *fasthttp.Response {
 	url := strings.SplitN(string(ctx.Request.Header.RequestURI())[1:], "/", 2)
 	req.SetRequestURI("https://" + url[0] + ".roblox.com/" + url[1])
 	req.SetBody(ctx.Request.Body())
-	ctx.Request.Header.VisitAll(func (key, value []byte) {
+	ctx.Request.Header.VisitAll(func(key, value []byte) {
 		req.Header.Set(string(key), string(value))
 	})
 	req.Header.Set("User-Agent", "RoProxy")
@@ -89,10 +92,10 @@ func makeRequest(ctx *fasthttp.RequestCtx, attempt int) *fasthttp.Response {
 
 	err := client.Do(req, resp)
 
-    if err != nil {
+	if err != nil {
 		fasthttp.ReleaseResponse(resp)
-        return makeRequest(ctx, attempt + 1)
-    } else {
+		return makeRequest(ctx, attempt+1)
+	} else {
 		return resp
 	}
 }
